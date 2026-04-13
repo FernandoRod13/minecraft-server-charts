@@ -9,6 +9,7 @@ image:
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
+  pullSecrets: []
 
 imagePullSecrets: []
 nameOverride: ""
@@ -70,6 +71,12 @@ tolerations: []
 
 affinity: {}
 
+persistence:
+  enabled: false
+  accessModes: ReadWriteOnce
+  size: 1Gi
+  storageClass: ""
+
 rconWeb:
   # Sets the initial user as an admin
   isAdmin: false
@@ -101,3 +108,7 @@ rconWeb:
   immutableWidgetOptions: false
   # Enables 'web rcon' if supported by the game server
   websocketRcon: false
+  # The URL for the websocket connection to the game server (if websocketRcon is true)
+  websocketUrl: "ws://localhost:4327"
+  # The URL for the secure websocket connection to the game server (if websocketRcon is true)
+  websocketUrlSsl: "wss://localhost:4327"

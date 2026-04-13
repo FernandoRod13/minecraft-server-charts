@@ -26,8 +26,14 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       volumes:
-        - name: db
-          emptyDir: {}
+         {{- if .Values.persistence.enabled }}
+         - name: db
+           persistentVolumeClaim:
+             claimName: {{ include "rcon-web-admin.fullname" . }}-db
+         {{- else }}
+         - name: db
+           emptyDir: {}
+         {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -68,36 +74,10 @@ spec:
             {{- if .Values.ingress.enabled }}
             {{ $wsUrl := print .Values.ingress.host (trimSuffix "/" .Values.ingress.path) "/websocket" }}
             - name: RWA_WEBSOCKET_URL_SSL
-              value: {{ print "wss://" $wsUrl | quote }}
+              value: {{ .Values.rconWeb.websocketUrlSsl | default "ws://localhost:4327" | quote }}
             - name: RWA_WEBSOCKET_URL
-              value: {{ print "ws://" $wsUrl | quote }}
+              value: {{ .Values.rconWeb.websocketUrl | default "wss://localhost:4327" | quote }}
             {{- end }}
-          {{- if not .Values.ingress.enabled }}
-          command:
-            - '/bin/sh'
-            - '-c'
-            - |-
-              # Installing jq to parse k8s response
-              export DEBIAN_FRONTEND=noninteractive
-              apt-get -qq update >/dev/null && apt-get -qq install -y jq > /dev/null
-              # Configuring k8s API auth
-              APISERVER=https://kubernetes.default.svc
-              SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount
-              NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace)
-              TOKEN=$(cat ${SERVICEACCOUNT}/token)
-              CACERT=${SERVICEACCOUNT}/ca.crt
-              # Querying for websocket service
-              WS_SERVICE="$(curl --silent --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X GET ${APISERVER}/api/v1/namespaces/{{ .Release.Namespace }}/services/{{ include "rcon-web-admin.fullname" . }})"
-              {{- if contains "LoadBalancer" .Values.service.type }}
-              WS_IP="$(echo "$WS_SERVICE" | jq -r .status.loadBalancer.ingress[0].ip)"
-              WS_PORT="{{ .Values.service.wsPort }}"
-              {{- else }}
-              {{- fail "Selected service type is not supported"}}
-              {{- end }}
-              export RWA_WEBSOCKET_URL="ws://$WS_IP:$WS_PORT"
-              export RWA_WEBSOCKET_URL_SSL="wss://$WS_IP:$WS_PORT"
-              /usr/local/bin/node src/main.js start
-          {{- end}}
           ports:
             - name: http
               containerPort: 4326

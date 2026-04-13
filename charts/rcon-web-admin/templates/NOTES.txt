@@ -1,3 +1,5 @@
+## Configuration
+
 1. Get the application URL by running these commands:
 {{- if .Values.ingress.enabled }}
 {{- with .Values.ingress }}
@@ -18,3 +20,15 @@
   echo "Visit http://127.0.0.1:8080 to use your application"
   kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT
 {{- end }}
+2. The web UI websocket is configured to connect to localhost:4327 by default.
+   This works when accessing via LoadBalancer since the service forwards to the same pod.
+
+3. For persistence (recommended), ensure persistence.enabled=true in your values.
+
+## Troubleshooting
+
+If the websocket fails to connect, you may need to set custom websocket URLs:
+
+rconWeb:
+  websocketUrl: "ws://<your-loadbalancer-ip>:{{ add .Values.service.httpPort 1 }}"
+  websocketUrlSsl: "wss://<your-loadbalancer-ip>:{{ add .Values.service.httpPort 1 }}"
