@@ -71,13 +71,10 @@ spec:
               value: {{ .Values.rconWeb.immutableWidgetOptions | default false | ternary "TRUE" "FALSE" | quote }}
             - name: RWA_WEB_RCON
               value: {{ .Values.rconWeb.websocketRcon | default false | ternary "TRUE" "FALSE" | quote }}
-            {{- if .Values.ingress.enabled }}
-            {{ $wsUrl := print .Values.ingress.host (trimSuffix "/" .Values.ingress.path) "/websocket" }}
             - name: RWA_WEBSOCKET_URL_SSL
-              value: {{ .Values.rconWeb.websocketUrlSsl | default "ws://localhost:4327" | quote }}
+              value: {{ .Values.rconWeb.websocketUrlSsl | default "wss://localhost:4327" | quote }}
             - name: RWA_WEBSOCKET_URL
-              value: {{ .Values.rconWeb.websocketUrl | default "wss://localhost:4327" | quote }}
-            {{- end }}
+              value: {{ .Values.rconWeb.websocketUrl | default "ws://localhost:4327" | quote }}
           ports:
             - name: http
               containerPort: 4326

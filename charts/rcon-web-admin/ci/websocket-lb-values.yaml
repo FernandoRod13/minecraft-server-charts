@@ -1,0 +1,13 @@
+# Test websocket env vars with LoadBalancer (no ingress)
+# The chart should set RWA_WEBSOCKET_URL and RWA_WEBSOCKET_URL_SSL env vars
+# regardless of whether ingress is enabled or disabled
+service:
+  type: LoadBalancer
+
+rconWeb:
+  password: test
+  rconHost: ""
+  rconPort: 0
+
+ingress:
+  enabled: false

@@ -36,6 +36,44 @@ jobs:
         if: steps.list-changed.outputs.changed == 'true'
         run: ct lint --target-branch ${{ github.event.repository.default_branch }}
 
+      - name: Test websocket env vars (no ingress)
+        if: steps.list-changed.outputs.changed == 'true'
+        run: |
+          helm template test ./charts/rcon-web-admin \
+            -f ./charts/rcon-web-admin/ci/websocket-lb-values.yaml \
+            --no-hooks > /tmp/rendered.yaml
+          
+          if ! grep -q "name: RWA_WEBSOCKET_URL" /tmp/rendered.yaml; then
+            echo "ERROR: RWA_WEBSOCKET_URL env var is missing"
+            exit 1
+          fi
+          
+          if ! grep -q "name: RWA_WEBSOCKET_URL_SSL" /tmp/rendered.yaml; then
+            echo "ERROR: RWA_WEBSOCKET_URL_SSL env var is missing"
+            exit 1
+          fi
+          
+          echo "PASS: Websocket env vars present without ingress"
+
+      - name: Test websocket env vars (with ingress)
+        if: steps.list-changed.outputs.changed == 'true'
+        run: |
+          helm template test ./charts/rcon-web-admin \
+            -f ./charts/rcon-web-admin/ci/websocket-ingress-values.yaml \
+            --no-hooks > /tmp/rendered.yaml
+          
+          if ! grep -q "name: RWA_WEBSOCKET_URL" /tmp/rendered.yaml; then
+            echo "ERROR: RWA_WEBSOCKET_URL env var is missing with ingress"
+            exit 1
+          fi
+          
+          if ! grep -q "name: RWA_WEBSOCKET_URL_SSL" /tmp/rendered.yaml; then
+            echo "ERROR: RWA_WEBSOCKET_URL_SSL env var is missing with ingress"
+            exit 1
+          fi
+          
+          echo "PASS: Websocket env vars present with ingress"
+
       - name: Create kind cluster
         if: steps.list-changed.outputs.changed == 'true'
         uses: helm/kind-action@v1.12.0
