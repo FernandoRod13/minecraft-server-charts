@@ -12,3 +12,10 @@ ingress:
   enabled: true
   host: example.com
   path: /
+
+# Disable readiness probe - no Minecraft server in CI
+readinessProbe:
+  enabled: false
+
+livenessProbe:
+  enabled: false

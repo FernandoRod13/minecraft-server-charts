@@ -11,3 +11,10 @@ rconWeb:
 
 ingress:
   enabled: false
+
+# Disable readiness probe - no Minecraft server in CI
+readinessProbe:
+  enabled: false
+
+livenessProbe:
+  enabled: false
