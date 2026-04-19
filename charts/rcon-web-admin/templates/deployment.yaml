@@ -85,14 +85,26 @@ spec:
           volumeMounts:
             - name: db
               mountPath: /opt/rcon-web-admin/db
+          {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
-              path: /
+              path: {{ .Values.livenessProbe.path | default "/" }}
               port: http
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds | default 0 }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds | default 10 }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds | default 1 }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold | default 3 }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
           readinessProbe:
             httpGet:
-              path: /
+              path: {{ .Values.readinessProbe.path | default "/" }}
               port: http
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds | default 0 }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds | default 10 }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds | default 1 }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold | default 3 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
